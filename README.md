@@ -73,7 +73,7 @@ The database cluster is isolated inside a secure private network. All administra
 
 * Replica Set Architecture & High Availability: Designed the cluster topology with dedicated Primary and Secondary members, optimizing Elections (using election protocols, priority settings, and heartbeat settings) and monitoring the Oplog size and replication lag for data synchronization. Detailed design was aligned with MongoDB Replication core concepts. [https://www.mongodb.com/docs/v7.0/replication/]
 
-* Production Hardening & Self-Managed OS Tuning: Optimized the underlying infrastructure for self-managed instances. Formatted data drives, modified kernel parameters, disabled THP, and set file descriptors (ulimit) to prevent bottlenecks under production loads. Configured in alignment with official Production Notes. [LINK_HERE]
+* Production Hardening & Self-Managed OS Tuning: Optimized the underlying infrastructure for self-managed instances. Formatted data drives, modified kernel parameters, disabled THP, and set file descriptors (ulimit) to prevent bottlenecks under production loads. Configured in alignment with official Production Notes. [https://www.mongodb.com/docs/atlas/production-notes/]
 
 * Network & Configuration Hardening: Secured the self-managed deployment by restricting inbound traffic to port 27017 using host-level firewalls (UFW), binding MongoDB to secure private network interfaces only, and preventing unauthorized external access. Built according to Self-Managed Network Hardening practices. [https://www.mongodb.com/docs/atlas/production-notes/]
 
@@ -87,15 +87,18 @@ The database cluster is isolated inside a secure private network. All administra
 
 ### 1. Verification of MongoDB Services
 Checking that the database service is up, hardened, and active on the nodes:
-`![mongod Service Status](screenshots/systemctl-status.png)`
+`![mongod Service Status](screenshots/status.png)`
 
 ### 2. Cluster Status & Membership
 Running `rs.status()` on the primary node to verify all three nodes joined successfully:
-`![rs.status Output](screenshots/rs-status.png)`
+`![rs.status Output](screenshots/rs-status1.png)`
+`![rs.status Output](screenshots/rs-status2.png)`
 
 ### 3. Automatic Failover Test
 Simulating primary node failure (`systemctl stop mongod`) and verifying the seamless automatic election of a new Primary node within seconds:
-`![Automatic Failover Verification](screenshots/failover-test.png)`
+`![Automatic Failover Verification](screenshots/failover-test1.png)`
+`![Automatic Failover Verification](screenshots/failover-test2.png)`
+
 
 ### 4. Database Security Proof
 Verifying that database reads/writes are strictly unauthorized without active credentials:
