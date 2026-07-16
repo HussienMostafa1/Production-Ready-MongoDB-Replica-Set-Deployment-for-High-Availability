@@ -38,12 +38,11 @@ The database cluster is isolated inside a secure private network. All administra
 ```
 ![MongoDB Replica Set Architecture](architecture/Architecture1.png)
 ## 🛠️ Technologies & Tools Used
-OS: Ubuntu 22.04 LTS (On all 4 servers)
-Database: MongoDB Community Edition (v0.0)
-High Availability: MongoDB Replica Set Engine
-Security: OpenSSL (Keyfile generation), SSH (Secure Tunneling)
-Networking: Private Subnets & Host Resolution
-Process Management: systemd
-Scripting: Bash (Automation & Backups)
-
-Firewall: UFW (Uncomplicated Firewall)
+* OS: Ubuntu 22.04 LTS (On all 4 servers)
+* Database: MongoDB Community Edition (v0.0)
+* High Availability: MongoDB Replica Set Engine
+* Security: OpenSSL (Keyfile generation), SSH (Secure Tunneling)
+* Networking: Private Subnets & Host Resolution
+* Process Management: systemd
+* Scripting: Bash (Automation & Backups)
+* Firewall: UFW (Uncomplicated Firewall)
