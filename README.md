@@ -35,3 +35,20 @@ The database cluster is isolated inside a secure private network. All administra
 | Mongo Node1 |    | Mongo Node2 |    | Mongo Node3 |
 |  Primary    |    |  Secondary  |    |  Secondary  |
 +-------------+    +-------------+    +-------------+
+
+## 🛠️ Technologies & Tools Used
+OS: Ubuntu 22.04 LTS (On all 4 servers)
+
+Database: MongoDB Community Edition (v7.0)
+
+High Availability: MongoDB Replica Set Engine
+
+Security: OpenSSL (Keyfile generation), SSH (Secure Tunneling)
+
+Networking: Private Subnets & Host Resolution
+
+Process Management: systemd
+
+Scripting: Bash (Automation & Backups)
+
+Firewall: UFW (Uncomplicated Firewall)
