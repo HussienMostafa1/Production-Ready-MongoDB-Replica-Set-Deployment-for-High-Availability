@@ -87,17 +87,17 @@ The database cluster is isolated inside a secure private network. All administra
 
 ### 1. Verification of MongoDB Services
 Checking that the database service is up, hardened, and active on the nodes:
-`![mongod Service Status](screenshots/status.png)`
+![mongod Service Status](screenshots/status.png)
 
 ### 2. Cluster Status & Membership
 Running `rs.status()` on the primary node to verify all three nodes joined successfully:
-`![rs.status Output](screenshots/rs-status1.png)`
-`![rs.status Output](screenshots/rs-status2.png)`
+![rs.status Output](screenshots/rs-status1.png)
+![rs.status Output](screenshots/rs-status2.png)
 
 ### 3. Automatic Failover Test
 Simulating primary node failure (`systemctl stop mongod`) and verifying the seamless automatic election of a new Primary node within seconds:
-`![Automatic Failover Verification](screenshots/failover-test1.png)`
-`![Automatic Failover Verification](screenshots/failover-test2.png)`
+![Automatic Failover Verification](screenshots/failover-test1.png)
+![Automatic Failover Verification](screenshots/failover-test2.png)
 
 
 ### 4. Database Security Proof
