@@ -105,27 +105,33 @@ Verifying that database reads/writes are strictly unauthorized without active cr
 `![Database Authentication Verification](screenshots/auth-test.png)`
 
 ---
-
 ## ⚠️ Troubleshooting (Real-World Issues Faced & Solved)
-
 During the deployment of this production environment, several real-world challenges were encountered and successfully resolved:
 
-### 1. Node Recovery Stuck in `STARTUP2` State
-* **The Problem:** One of the secondary nodes remained stuck in `STARTUP2` and refused to transition to `SECONDARY` status.
-* **The Cause:** A huge initial sync payload coupled with temporary network latency between the private subnets.
-* **The Solution:** Adjusted the `heartbeatTimeoutSecs` parameter, cleared the partial data directory on the stuck node, and allowed the initial sync to restart cleanly.
+### 1. Primary Node Failing to Reclaim Its Role After Recovery
+* **The Problem:** When the original Primary node went down, a Secondary was successfully elected. However, when the original Primary server recovered and rejoined the cluster, it remained stuck as a SECONDARY even though it possessed higher system resources and was intended to host the primary workload.
 
-### 2. Primary Election Failure During Failover
-* **The Problem:** When the primary node was shut down, the remaining two nodes failed to elect a new Primary, leaving the cluster in read-only mode.
-* **The Cause:** Strict firewall rules (`UFW`) were blocking the port `27017` communication between the two secondary nodes themselves (they could only talk to the old primary).
-* **The Solution:** Updated the `UFW` rules on all nodes to explicitly allow bidirectional communication across all member private IPs, not just to/from the primary.
+* **The Cause:** MongoDB Replica Set elections don't automatically fail back based on hardware specs; they rely strictly on the priority parameter. If all nodes have the same priority (default is 1), the recovered node won't force a new election.
 
-### 3. Authentication Failures During Inter-Node Sync
-* **The Problem:** After enabling authentication (`security.authorization: enabled`), the secondary nodes were blocked from syncing data from the primary.
-* **The Cause:** MongoDB requires an internal clustering authentication mechanism once client authorization is active.
-* **The Solution:** Referenced the [MongoDB Internal Authentication Docs](https://www.mongodb.com/docs/manual/core/security-internal-authentication/) to generate and configure a secure shared Keyfile for cluster-member-only communication.
+* **The Solution:** Adjusted the cluster configuration members' weights. Configured the preferred Primary node with a higher priority (e.g., priority: 2 or 1) while setting the other nodes to a lower priority or 0 depending on the desired election topology, ensuring the high-resource server always reclaims the PRIMARY status once healthy. Guided by replica set member configuration practices. [https://www.mongodb.com/docs/manual/core/replica-set-elections/]
 
-### 4. Client Connection Timeout from Gateway
-* **The Problem:** Testing database access from the Gateway host resulted in connection timeouts.
-* **The Cause:** The MongoDB configuration file (`/etc/mongod.conf`) was only binding to `127.0.0.1` (localhost).
-* **The Solution:** Edited the configuration to bind to both localhost and the node's private IP address: `bindIp: 127.0.0.1,<node_private_ip>`.
+### 2. Inter-Cluster Communication Blocked by Host Firewall
+* **The Problem:** Newly provisioned database nodes failed to ping each other or initialize the replica set, resulting in replication configuration timeouts.
+
+* **The Cause:** Host-level firewall configurations (UFW) were active by default on the OS image, blocking port 27017 traffic between the nodes.
+
+* **The Solution:** Since all database instances are already entirely isolated inside a secure, trusted Private Network Subnet with zero public internet exposure, the redundant local host firewalls were safely disabled/purged. This streamlined inter-node communication and synchronization without compromising security, as network boundaries are fully controlled at the infrastructure/gateway level.
+
+### 3. Complex Secure GUI Access via Double SSH Tunneling (MongoDB Compass)
+* **The Problem:** Accessing the isolated private database nodes via a graphical UI (MongoDB Compass) for administrative tasks was highly complex, as the database cluster has no public IPs and cannot be directly reached.
+
+* **The Cause:** Standard single-hop SSH tunneling fails when the destination database nodes are hidden behind a Gateway/Bastion host inside a segregated subnet.
+
+* **The Solution:** Formulated and executed a dynamic multi-hop (double) SSH port forwarding command. This forwards the secure connection from the local machine through the public Gateway host, and from the Gateway directly into the private database node's port 27017. This enabled seamless, secure management via MongoDB Compass over an encrypted tunnel.
+
+### 4. Data Loss Risk & Storage Performance Bottlenecks
+* **The Problem:** Storing database files directly on the server's internal/root operating system drive posed a critical risk: if the OS or virtual instance crashed/corrupted, production data could be permanently lost. Additionally, default filesystems underperformed under high database read/write concurrency.
+
+* **The Cause:** Root volumes lack independent persistence and are not optimized for intense database sequential and random I/O workloads.
+
+* **The Solution:** Provisioned an independent, external block storage volume (Detached Network Storage) and attached it to the database instances. To maximize MongoDB's WiredTiger storage engine throughput and prevent corruption, the external drive was formatted using the XFS Filesystem and mounted cleanly, separating the production data lifecycle from the instance lifecycle. Configured following database storage best practices. [https://www.mongodb.com/docs/manual/tutorial/change-replica-set-wiredtiger/]
